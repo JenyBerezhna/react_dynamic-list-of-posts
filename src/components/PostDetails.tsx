@@ -9,7 +9,8 @@ export interface Props {
   comments: Comment[];
   loading: boolean;
   error: boolean;
-  onAddComment?: (comment: CommentData) => void;
+  onAddComment: (comment: CommentData) => Promise<Comment>;
+  onDeleteComment: (id: number) => Promise<void>;
 }
 
 export const PostDetails: React.FC<Props> = ({
@@ -18,10 +19,45 @@ export const PostDetails: React.FC<Props> = ({
   loading,
   error,
   onAddComment,
+  onDeleteComment,
 }) => {
-  const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const [localComments, setLocalComments] = React.useState(comments);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const [addError, setAddError] = React.useState<string | null>(null);
 
-  const openForm = () => setIsFormOpen(true);
+  React.useEffect(() => {
+    setLocalComments(comments);
+  }, [comments]);
+
+  // Add comment with retry support
+  const handleAddComment = async (data: CommentData) => {
+    setAddError(null);
+
+    try {
+      const newComment = await onAddComment(data);
+
+      setLocalComments(prev => [...prev, newComment]);
+    } catch (err) {
+      setAddError('Failed to add comment. Please try again.');
+      throw err; // allows form to stop loading
+    }
+  };
+
+  //  delete with rollback + retry support
+  const handleDeleteComment = async (id: number) => {
+    setDeleteError(null);
+
+    const prevComments = localComments;
+
+    setLocalComments(prev => prev.filter(c => c.id !== id));
+
+    try {
+      await onDeleteComment(id);
+    } catch (err) {
+      setLocalComments(prevComments);
+      setDeleteError('Failed to delete comment. Please try again.');
+    }
+  };
 
   return (
     <div className="content" data-cy="PostDetails">
@@ -44,15 +80,23 @@ export const PostDetails: React.FC<Props> = ({
           </div>
         )}
 
-        {!loading && !error && comments.length === 0 && (
+        {deleteError && (
+          <div className="notification is-danger mt-2">{deleteError}</div>
+        )}
+
+        {addError && (
+          <div className="notification is-danger mt-2">{addError}</div>
+        )}
+
+        {!loading && !error && localComments.length === 0 && (
           <p className="title is-4" data-cy="NoCommentsMessage">
             No comments yet
           </p>
         )}
 
-        {!loading && !error && comments.length > 0 && (
+        {!loading && !error && localComments.length > 0 && (
           <>
-            {comments.map(comment => (
+            {localComments.map(comment => (
               <article
                 key={comment.id}
                 className="message is-small"
@@ -67,9 +111,8 @@ export const PostDetails: React.FC<Props> = ({
                     type="button"
                     className="delete is-small"
                     aria-label="delete"
-                  >
-                    delete button
-                  </button>
+                    onClick={() => handleDeleteComment(comment.id)}
+                  />
                 </div>
                 <div className="message-body" data-cy="CommentBody">
                   {comment.body}
@@ -79,19 +122,8 @@ export const PostDetails: React.FC<Props> = ({
           </>
         )}
 
-        {!isFormOpen && (
-          <button
-            data-cy="WriteCommentButton"
-            type="button"
-            className="button is-link"
-            onClick={openForm}
-          >
-            Write a comment
-          </button>
-        )}
+        <NewCommentSection onAddComment={handleAddComment} />
       </div>
-
-      <NewCommentSection onAddComment={onAddComment} />
     </div>
   );
 };
