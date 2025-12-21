@@ -3,7 +3,7 @@ import { NewCommentForm } from './NewCommentForm';
 import { CommentData } from '../types/Comment';
 
 interface Props {
-  onAddComment?: (comment: CommentData) => void;
+  onAddComment: (comment: CommentData) => Promise<void>;
 }
 
 export const NewCommentSection: React.FC<Props> = ({ onAddComment }) => {
@@ -24,7 +24,7 @@ export const NewCommentSection: React.FC<Props> = ({ onAddComment }) => {
         </button>
       )}
 
-      {isFormOpen && <NewCommentForm onSubmit={onAddComment || (() => {})} />}
+      {isFormOpen && <NewCommentForm onSubmit={onAddComment} />}
     </div>
   );
 };

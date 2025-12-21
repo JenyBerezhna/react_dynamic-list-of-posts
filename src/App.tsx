@@ -10,6 +10,7 @@ import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
 import { client } from './utils/fetchClient';
+
 import { User } from './types/User';
 import { Post } from './types/Post';
 import { Comment, CommentData } from './types/Comment';
@@ -17,15 +18,18 @@ import { Comment, CommentData } from './types/Comment';
 export const App = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
   const [posts, setPosts] = useState<Post[]>([]);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+
+  const [comments, setComments] = useState<Comment[]>([]);
+
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingPosts, setLoadingPosts] = useState(false);
+  const [loadingComments, setLoadingComments] = useState(false);
+
   const [usersError, setUsersError] = useState(false);
   const [postsError, setPostsError] = useState(false);
-
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loadingComments, setLoadingComments] = useState(false);
   const [commentsError, setCommentsError] = useState(false);
 
   useEffect(() => {
@@ -33,6 +37,7 @@ export const App = () => {
       try {
         setLoadingUsers(true);
         setUsersError(false);
+
         const data = await client.get<User[]>('/users');
 
         setUsers(data);
@@ -46,17 +51,22 @@ export const App = () => {
     loadUsers();
   }, []);
 
+  // Load posts when user changes + close sidebar
   useEffect(() => {
     if (!selectedUser) {
       setPosts([]);
+      setSelectedPost(null);
 
       return;
     }
+
+    setSelectedPost(null); // close sidebar when switching users
 
     const loadPosts = async () => {
       try {
         setLoadingPosts(true);
         setPostsError(false);
+
         const data = await client.get<Post[]>(
           `/posts?userId=${selectedUser.id}`,
         );
@@ -72,6 +82,7 @@ export const App = () => {
     loadPosts();
   }, [selectedUser]);
 
+  // Load comments when post changes
   useEffect(() => {
     if (!selectedPost) {
       setComments([]);
@@ -83,6 +94,7 @@ export const App = () => {
       try {
         setLoadingComments(true);
         setCommentsError(false);
+
         const data = await client.get<Comment[]>(
           `/comments?postId=${selectedPost.id}`,
         );
@@ -98,21 +110,44 @@ export const App = () => {
     loadComments();
   }, [selectedPost]);
 
-  const handleAddComment = async (data: CommentData) => {
+  // (API + append)
+  const handleAddComment = async (data: CommentData): Promise<void> => {
+    if (!selectedPost) {
+      return;
+    }
+
     try {
-      setLoadingComments(true);
       setCommentsError(false);
+      setLoadingComments(true);
 
       const created = await client.post<Comment>(
-        `/comments?postId=${selectedPost?.id}`,
-        { ...data, postId: selectedPost!.id },
+        `/comments?postId=${selectedPost.id}`,
+        { ...data, postId: selectedPost.id },
       );
 
       setComments(prev => [...prev, created]);
-    } catch {
+    } catch (error) {
       setCommentsError(true);
+      throw error;
     } finally {
       setLoadingComments(false);
+    }
+  };
+
+  // delete with rollback
+  const handleDeleteComment = async (id: number): Promise<void> => {
+    setCommentsError(false);
+
+    const prevComments = comments;
+
+    setComments(curr => curr.filter(comment => comment.id !== id));
+
+    try {
+      await client.delete(`/comments/${id}`);
+    } catch {
+      setComments(prevComments);
+      setCommentsError(true);
+      throw new Error('Failed to delete comment');
     }
   };
 
@@ -120,6 +155,7 @@ export const App = () => {
     <main className="section">
       <div className="container">
         <div className="tile is-ancestor">
+          {/* LEFT COLUMN */}
           <div className="tile is-parent">
             <div className="tile is-child box is-success">
               <div className="block">
@@ -136,6 +172,7 @@ export const App = () => {
                 )}
 
                 {loadingUsers && <Loader />}
+
                 {usersError && (
                   <div className="notification is-danger">
                     Failed to load users
@@ -143,6 +180,7 @@ export const App = () => {
                 )}
 
                 {loadingPosts && <Loader />}
+
                 {postsError && (
                   <div
                     className="notification is-danger"
@@ -174,6 +212,7 @@ export const App = () => {
             </div>
           </div>
 
+          {/* RIGHT SIDEBAR */}
           <div
             data-cy="Sidebar"
             className={classNames(
@@ -184,7 +223,7 @@ export const App = () => {
               { 'Sidebar--open': !!selectedPost },
             )}
           >
-            <div className="tile is-child box is-success ">
+            <div className="tile is-child box is-success">
               {selectedPost ? (
                 <PostDetails
                   post={selectedPost}
@@ -192,6 +231,7 @@ export const App = () => {
                   loading={loadingComments}
                   error={commentsError}
                   onAddComment={handleAddComment}
+                  onDeleteComment={handleDeleteComment}
                 />
               ) : (
                 <p>Select a post to see details</p>

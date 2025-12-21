@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { STATIC_USERS, User } from '../types/User';
+import React, { useEffect, useRef, useState } from 'react';
+import { User } from '../types/User';
 
 export type Props = {
   users: User[];
@@ -7,11 +7,35 @@ export type Props = {
   onSelect: (user: User | null) => void;
 };
 
-export const UserSelector: React.FC<Props> = ({ selectedUser, onSelect }) => {
+export const UserSelector: React.FC<Props> = ({
+  users,
+  selectedUser,
+  onSelect,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div
+      ref={wrapperRef}
       data-cy="UserSelector"
       className={`dropdown ${isOpen ? 'is-active' : ''}`}
     >
@@ -32,12 +56,14 @@ export const UserSelector: React.FC<Props> = ({ selectedUser, onSelect }) => {
 
       <div className="dropdown-menu" id="dropdown-menu" role="menu">
         <div className="dropdown-content">
-          {STATIC_USERS.map((user: User) => (
+          {users.map(user => (
             <a
               key={user.id}
               href={`#user-${user.id}`}
-              className={`dropdown-item ${selectedUser?.id === user.id ? 'is-active' : ''}`}
-              onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+              className={`dropdown-item ${
+                selectedUser?.id === user.id ? 'is-active' : ''
+              }`}
+              onClick={e => {
                 e.preventDefault();
                 onSelect(user);
                 setIsOpen(false);
