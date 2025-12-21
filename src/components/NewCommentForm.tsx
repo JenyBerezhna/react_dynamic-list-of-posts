@@ -53,7 +53,7 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit }) => {
     setLoading(true);
 
     try {
-      await onSubmit({ name, email, body });
+      await onSubmit({ name, email, body, postId: 1 });
       setBody(''); // keep name/email, clear only body
     } finally {
       setLoading(false);

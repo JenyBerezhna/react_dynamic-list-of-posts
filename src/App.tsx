@@ -155,7 +155,6 @@ export const App = () => {
     <main className="section">
       <div className="container">
         <div className="tile is-ancestor">
-          {/* LEFT COLUMN */}
           <div className="tile is-parent">
             <div className="tile is-child box is-success">
               <div className="block">
@@ -212,7 +211,6 @@ export const App = () => {
             </div>
           </div>
 
-          {/* RIGHT SIDEBAR */}
           <div
             data-cy="Sidebar"
             className={classNames(

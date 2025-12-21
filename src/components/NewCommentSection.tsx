@@ -8,8 +8,14 @@ interface Props {
 
 export const NewCommentSection: React.FC<Props> = ({ onAddComment }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-
   const openForm = () => setIsFormOpen(true);
+
+  const handleSubmit = (data: CommentData) => {
+    return onAddComment({
+      ...data,
+      postId: data.postId || 1,
+    });
+  };
 
   return (
     <div className="block">
@@ -24,7 +30,7 @@ export const NewCommentSection: React.FC<Props> = ({ onAddComment }) => {
         </button>
       )}
 
-      {isFormOpen && <NewCommentForm onSubmit={onAddComment} />}
+      {isFormOpen && <NewCommentForm onSubmit={handleSubmit} />}
     </div>
   );
 };

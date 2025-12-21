@@ -7,4 +7,4 @@ export interface Comment {
 }
 
 // Only the fields the form collects
-export type CommentData = Pick<Comment, 'name' | 'email' | 'body'>;
+export type CommentData = Pick<Comment, 'name' | 'email' | 'body' | 'postId'>;
