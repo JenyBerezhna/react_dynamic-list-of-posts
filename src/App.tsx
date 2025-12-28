@@ -9,7 +9,9 @@ import { PostsList } from './components/PostsList';
 import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
+
 import { client } from './utils/fetchClient';
+import * as api from './api/comments';
 
 import { User } from './types/User';
 import { Post } from './types/Post';
@@ -32,6 +34,7 @@ export const App = () => {
   const [postsError, setPostsError] = useState(false);
   const [commentsError, setCommentsError] = useState(false);
 
+  // Load users
   useEffect(() => {
     const loadUsers = async () => {
       try {
@@ -51,7 +54,7 @@ export const App = () => {
     loadUsers();
   }, []);
 
-  // Load posts when user changes + close sidebar
+  // Load posts when user changes
   useEffect(() => {
     if (!selectedUser) {
       setPosts([]);
@@ -60,7 +63,7 @@ export const App = () => {
       return;
     }
 
-    setSelectedPost(null); // close sidebar when switching users
+    setSelectedPost(null);
 
     const loadPosts = async () => {
       try {
@@ -110,7 +113,7 @@ export const App = () => {
     loadComments();
   }, [selectedPost]);
 
-  // (API + append)
+  // Add comment (API + append)
   const handleAddComment = async (data: CommentData): Promise<void> => {
     if (!selectedPost) {
       return;
@@ -120,10 +123,10 @@ export const App = () => {
       setCommentsError(false);
       setLoadingComments(true);
 
-      const created = await client.post<Comment>(
-        `/comments?postId=${selectedPost.id}`,
-        { ...data, postId: selectedPost.id },
-      );
+      const created = await api.commentsPost({
+        ...data,
+        postId: selectedPost.id,
+      });
 
       setComments(prev => [...prev, created]);
     } catch (error) {
@@ -134,7 +137,7 @@ export const App = () => {
     }
   };
 
-  // delete with rollback
+  // Delete comment with rollback
   const handleDeleteComment = async (id: number): Promise<void> => {
     setCommentsError(false);
 
