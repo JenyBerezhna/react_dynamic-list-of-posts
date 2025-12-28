@@ -11,7 +11,7 @@ import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
 
 import { client } from './utils/fetchClient';
-import * as api from './api/comments';
+import * as api from './api/client';
 
 import { User } from './types/User';
 import { Post } from './types/Post';
