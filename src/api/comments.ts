@@ -1,6 +1,6 @@
 import { client } from '../utils/fetchClient';
 import { Comment, CommentData } from '../types/Comment';
 
-export const commentsPost = (data: CommentData) => {
-  return client.post<Comment>('/comments', data);
+export const commentsPost = (data: CommentData): Promise<Comment> => {
+  return client.post('/comments', data);
 };
