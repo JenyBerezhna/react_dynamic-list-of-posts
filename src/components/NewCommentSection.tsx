@@ -11,10 +11,7 @@ export const NewCommentSection: React.FC<Props> = ({ onAddComment }) => {
   const openForm = () => setIsFormOpen(true);
 
   const handleSubmit = (data: CommentData) => {
-    return onAddComment({
-      ...data,
-      postId: data.postId || 1,
-    });
+    return onAddComment(data);
   };
 
   return (

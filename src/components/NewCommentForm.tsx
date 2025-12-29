@@ -53,7 +53,8 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit }) => {
     setLoading(true);
 
     try {
-      await onSubmit({ name, email, body, postId: 1 });
+      await onSubmit({ name, email, body });
+
       setBody('');
     } finally {
       setLoading(false);

@@ -79,7 +79,7 @@ export const PostDetails: React.FC<Props> = ({
         )}
 
         {!loading && !error && (
-          <NewCommentSection onAddComment={onAddComment} />
+          <NewCommentSection key={post.id} onAddComment={onAddComment} />
         )}
       </div>
     </div>
