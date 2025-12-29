@@ -121,7 +121,6 @@ export const App = () => {
 
     try {
       setCommentsError(false);
-      setLoadingComments(true);
 
       const created = await api.commentsPost({
         ...data,
@@ -132,8 +131,6 @@ export const App = () => {
     } catch (error) {
       setCommentsError(true);
       throw error;
-    } finally {
-      setLoadingComments(false);
     }
   };
 

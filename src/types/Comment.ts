@@ -5,5 +5,5 @@ export interface Comment {
   body: string;
 }
 
-// Only the fields the form collects
+// CommentData- Only the fields the form collects
 export type CommentData = Pick<Comment, 'name' | 'email' | 'body'>;

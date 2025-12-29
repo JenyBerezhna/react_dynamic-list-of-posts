@@ -65,6 +65,13 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit }) => {
     setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
+  const reset = () => {
+    setName('');
+    setEmail('');
+    setBody('');
+    setErrors({ name: '', email: '', body: '' });
+  };
+
   return (
     <form data-cy="NewCommentForm" onSubmit={handleSubmit}>
       <div className="field" data-cy="NameField">
@@ -185,12 +192,7 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit }) => {
           <button
             type="reset"
             className="button is-link is-light"
-            onClick={() => {
-              setName('');
-              setEmail('');
-              setBody('');
-              setErrors({ name: '', email: '', body: '' });
-            }}
+            onClick={reset}
           >
             Clear
           </button>

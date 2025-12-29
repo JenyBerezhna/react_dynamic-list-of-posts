@@ -10,8 +10,8 @@ export const NewCommentSection: React.FC<Props> = ({ onAddComment }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const openForm = () => setIsFormOpen(true);
 
-  const handleSubmit = (data: CommentData) => {
-    return onAddComment(data);
+  const handleSubmit = async (data: CommentData) => {
+    await onAddComment(data);
   };
 
   return (
